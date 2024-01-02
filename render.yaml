@@ -10,4 +10,4 @@ build:
 
 start:
   # Specify the command to start your application
-  - python your_app_file.py  # Replace with the actual filename of your main Python script
+  - python app.py  # Replace with the actual filename of your main Python script
