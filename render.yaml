@@ -1,8 +1,9 @@
-# render.yaml
-
 version: 1
 
 build:
+  # Install build dependencies for pygame
   - sudo apt-get update
   - sudo apt-get install -y libsdl2-dev
+
+  # Install Python packages
   - pip install -r requirements.txt
