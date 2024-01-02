@@ -1,9 +1,12 @@
 version: 1
 
 build:
-  # Install build dependencies for pygame
-  - sudo apt-get update
-  - sudo apt-get install -y libsdl2-dev
-
   # Install Python packages
   - pip install -r requirements.txt
+
+  # Install SDL2 development libraries using Chocolatey (assuming it's installed)
+  - choco install sdl2
+
+start:
+  # Specify the command to start your application
+  - python your_app_file.py  # Replace with the actual filename of your main Python script
