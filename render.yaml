@@ -1,12 +1,13 @@
 version: 1
 
 build:
+  # Install system dependencies
+  - sudo apt-get update
+  - sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+
   # Install Python packages
   - pip install -r requirements.txt
 
-  # Install SDL2 development libraries using Chocolatey (assuming it's installed)
-  - choco install sdl2
-
 start:
   # Specify the command to start your application
-  - python app.py  # Replace with the actual filename of your main Python script
+  - python your_app_file.py  # Replace with the actual filename of your main Python script
