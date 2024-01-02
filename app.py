@@ -1,5 +1,6 @@
 import pygame
 import random
+import sys  # Import sys for sys.exit()
 from pygame import mixer
 
 # Inicialização do Pygame
@@ -32,6 +33,8 @@ background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 # Configurações de fontes
 font = pygame.font.Font('freesansbold.ttf', 32)
 game_over_font = pygame.font.Font('freesansbold.ttf', 64)
+
+
 def game_intro():
     intro = True
     while intro:
@@ -52,6 +55,8 @@ def game_intro():
         screen.blit(text_line2, (SCREEN_WIDTH // 4, SCREEN_HEIGHT // 2))
 
         pygame.display.update()
+
+
 # Chama a tela de introdução antes do loop principal
 game_intro()
 
@@ -61,7 +66,7 @@ mixer.music.set_volume(0.5)
 mixer.music.play(-1)
 explosion_sound = mixer.Sound('song/explosion.mp3')
 
-# Definição da classe Sprite
+
 class GameSprite(pygame.sprite.Sprite):
     def __init__(self, image, x, y, x_change, y_change):
         super().__init__()
@@ -71,6 +76,21 @@ class GameSprite(pygame.sprite.Sprite):
         self.rect.y = y
         self.x_change = x_change
         self.y_change = y_change
+
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, speed):
+        super().__init__()
+        self.image = pygame.Surface((5, 10))  # Adjust size as needed
+        self.image.fill((255, 255, 255))  # White color for the bullet
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.speed = speed
+
+    def update(self):
+        self.rect.y -= self.speed
+
 
 # Função para criar meteoros
 def spawn_meteors():
@@ -82,33 +102,48 @@ def spawn_meteors():
         meteors.add(meteor)
     return meteors
 
-# Função para verificar colisão
-def is_collision(rect1, rect2):
-    return rect1.colliderect(rect2)
+
+# Inicialização do jogador
+player_image = pygame.image.load('images/hero/hero1.png')
+player_sprite = GameSprite(player_image, SCREEN_WIDTH // 2 - PLAYER_WIDTH // 2, SCREEN_HEIGHT - PLAYER_HEIGHT, 0, 0)
+
+# Inicialização dos meteoros
+meteors = spawn_meteors()
+
+# Initialize the bullet group
+bullets = pygame.sprite.Group()
+
+# Variável para controlar o tempo inicial
+start_time = pygame.time.get_ticks()
 
 # Função para mostrar a pontuação
 def show_score(x, y, score):
     score_display = font.render("Points: " + str(score), True, (255, 255, 255))
     screen.blit(score_display, (x, y))
 
-# Função para mostrar o texto de "Game Over"
-def game_over():
-    game_over_text = game_over_font.render("GAME OVER", True, (255, 255, 255))
-    screen.blit(game_over_text, (SCREEN_WIDTH // 4, SCREEN_HEIGHT // 2))
+
+def is_collision(rect1, rect2):
+    return rect1.colliderect(rect2)
+
+class PlayerSprite(GameSprite):
+    def __init__(self, image, x, y, x_change, y_change):
+        super().__init__(image, x, y, x_change, y_change)
+
+    def shoot(self):
+        bullet = Bullet(self.rect.x + PLAYER_WIDTH // 2, self.rect.y, 5)  # Adjust speed as needed
+        bullets.add(bullet)
 
 # Inicialização do jogador
 player_image = pygame.image.load('images/hero/hero1.png')
-player_sprite = GameSprite(player_image, SCREEN_WIDTH // 2 - PLAYER_WIDTH // 2, SCREEN_HEIGHT - PLAYER_HEIGHT, 0, 0)
-
-# Loop principal do jogo
-running = True
-
-# Inicialização dos meteoros
-meteors = spawn_meteors()
-
+player_sprite = PlayerSprite(player_image, SCREEN_WIDTH // 2 - PLAYER_WIDTH // 2, SCREEN_HEIGHT - PLAYER_HEIGHT, 0, 0)
 # Variável para controlar o tempo inicial
 start_time = pygame.time.get_ticks()
 
+# Initialize score_val
+score_val = 0
+
+# Loop principal do jogo
+running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -122,18 +157,28 @@ while running:
                 player_sprite.y_change = -3
             elif event.key == pygame.K_DOWN:
                 player_sprite.y_change = 3
+            elif event.key == pygame.K_SPACE:
+                player_sprite.shoot()  # Call the shoot method when space is pressed
         elif event.type == pygame.KEYUP:
             if event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
                 player_sprite.x_change = 0
             elif event.key in [pygame.K_UP, pygame.K_DOWN]:
                 player_sprite.y_change = 0
-
     screen.blit(background, (0, 0))
+
+
+    # Calcular o tempo decorrido
+    elapsed_time = pygame.time.get_ticks() - start_time
+
+    # Aumentar a pontuação com o tempo
+    score_val = int(elapsed_time / 1000)  # Aumenta 1 ponto a cada segundo
 
     # Atualização da posição do jogador
     player_sprite.rect.x += player_sprite.x_change
     player_sprite.rect.y += player_sprite.y_change
 
+    screen.blit(player_sprite.image, (player_sprite.rect.x, player_sprite.rect.y))
+    show_score(10, 10, score_val)
     # Atualização da posição dos meteoros
     for meteor in meteors:
         meteor.rect.x += meteor.x_change
@@ -152,6 +197,9 @@ while running:
             meteor.rect.y = random.randint(-METEOR_HEIGHT, 0)
             meteor.rect.x = random.randint(100, SCREEN_WIDTH - 150)
 
+    # Atualização da posição das balas
+    bullets.update()
+
     # Verificar colisão entre jogador e meteoros
     collisions = pygame.sprite.spritecollide(player_sprite, meteors, False)
     if collisions:
@@ -160,6 +208,9 @@ while running:
         for meteor in collisions:
             meteor.rect.y = random.randint(-METEOR_HEIGHT, 0)
             meteor.rect.x = random.randint(100, SCREEN_WIDTH - 150)
+
+    # Verificar colisão entre balas e meteoros
+    bullet_meteor_collisions = pygame.sprite.groupcollide(bullets, meteors, True, True)
 
     # Calcular o tempo decorrido
     elapsed_time = pygame.time.get_ticks() - start_time

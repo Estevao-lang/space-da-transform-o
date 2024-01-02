@@ -1,0 +1,8 @@
+# render.yaml
+
+version: 1
+
+build:
+  - sudo apt-get update
+  - sudo apt-get install -y libsdl2-dev
+  - pip install -r requirements.txt
