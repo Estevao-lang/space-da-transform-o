@@ -1,8 +1,12 @@
-# render.yaml
-
+<<<<<<< HEAD
+# Changes from your branch
 version: 1
-
 build:
-  - sudo apt-get update
-  - sudo apt-get install -y libsdl2-dev
   - pip install -r requirements.txt
+=======
+# Changes from the remote repository
+version: 1
+build:
+  - choco install sdl2
+  - pip install -r requirements.txt
+>>>>>>> origin/main
